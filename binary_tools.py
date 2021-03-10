@@ -258,6 +258,73 @@ def binary_ephem(current_date, t0, T, smaj, ecc, inc, small_om, big_om, display=
         plt.axis('equal')
         
     return sep, pa
+    
+
+def get_Orbit_Param(Target):
+    """
+    Provides orbit parameters for binary systems
+
+    """
+
+
+    if Target == 'Capella':
+        # Time of Periastron [years]
+        t0         = 1990.6984257357974
+        # Semi-major axis [asec]
+        smaj       = 0.056442
+        # Eccentricity
+        ecc        = 0.00089
+        # Inclination [degrees]
+        inc        = 137.156
+        # Argument of periastron
+        small_om   = 342.6
+        # Position angle of ascending node
+        big_om     = 40.522
+        # Period [years]
+        T          = 0.28479474332648874   
+
+    elif  Target == 'betaHer':
+        # Time of Periastron [years]
+        t0 = Time('2415500.4',format='jd')
+        t0         = t0.decimalyear
+        # Semi-major axis [asec]
+        smaj       = 0.01137
+        # Eccentricity
+        ecc        = 0.55
+        # Inclination [degrees]
+        inc        = 53.8
+        # Argument of periastron
+        small_om   = 24.6
+        # Position angle of ascending node
+        big_om     = 341.9
+        # Period [years]
+        T = 410.6/365.25
+
+    elif Target == 'delSge':
+        # Time of Periastron [years]
+        t0         = 1979.93
+        # Semi-major axis [asec]
+        smaj       = 0.051
+        # Eccentricity
+        ecc        = 0.44
+        # Inclination [degrees]
+        inc        = 140
+        # Argument of periastron
+        small_om   = 257.7
+        # Position angle of ascending node
+        big_om     = 170.2
+        # Period [years]
+        T          = 10.11
+
+    else:
+        print('Target not listed...')
+
+
+
+    return t0, smaj, ecc, inc, small_om, big_om, T
+
+
+
 
 
 if __name__ == "__main__":
@@ -308,6 +375,8 @@ if __name__ == "__main__":
     big_om     = 170.2
     # Period [years]
     T          = 10.11
+
+    t0, smaj, ecc, inc, small_om, big_om, T = get_Orbit_Param('Capella')
     
     # epoch, x_pos, y_pos = binary_orbit(1000, smaj, ecc, inc, small_om, big_om, display = False)
     date = Time('2021-03-19T00:00:00', format='isot')
@@ -317,7 +386,7 @@ if __name__ == "__main__":
     utc_time = subaru.datetime_to_astropy_time(date.datetime) # convert to UTC
     current_date = 2021.2123
     sep, pa = binary_ephem(current_date, t0, T, smaj, ecc, inc, small_om, big_om, display=True)
-    ppp
+    
 
     ## Get the Parallactic Angle from astroplan library
     PA = get_Parallactic_Angle('Capella', 2020,9,16,4,48,32, display=True)
@@ -328,7 +397,7 @@ if __name__ == "__main__":
     PAD, subaru_q = get_Parallactic_Angle_Subaru(Az, El, display = True)
 
     ## Orbit
-    # b.binary_orbit(display = True)
+    # binary_orbit(display = True)
 
     ## Orbit + Ephem
     # current_date = 2020.709
