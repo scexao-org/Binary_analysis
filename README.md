@@ -1,4 +1,4 @@
-### Binary_analysis
+# Binary_analysis
 Tools to study binary systems
 
 ### Contributing
