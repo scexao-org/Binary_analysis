@@ -15,3 +15,13 @@ Tools to study binary systems
 
 1. Load orbital parameters from an online catalog
 2. Adding model of visibility and nulling curves
+
+
+## Credits
+
+This library gathers codes and information from various collaborators:
+- Guillaume Duchêne
+- Elsa Huby
+- Marc-Antoine Martinod
+- Tomoyuki Kudo
+- Sebastien Vievard
