@@ -12,12 +12,38 @@ import sympy as sp
 plt.ion()
 
 
-def get_Parallactic_Angle(starname, year, month, day, hours, minutes, seconds, display=False):
+def get_several_parallactic_angles(starname, date_start, date_end, n_elements,
+                                   display=False):
+    date_start = Time(date_start, format='isot', scale='local')
+    date_end = Time(date_end, format='isot', scale='local')
+
+    dt = date_end - date_start
+    times = date_start + dt * np.linspace(0, 1, n_elements+1, True)
+
+    pa, pad = [], []
+
+    for t in times:
+        para_angle, chuck_angle = \
+            get_parallactic_angle(starname, t.datetime.year, t.datetime.month,
+                                  t.datetime.day, t.datetime.hour,
+                                  t.datetime.minute, t.datetime.second,
+                                  display=display)[:-1]
+        pa.append(para_angle)
+        pad.append(chuck_angle)
+
+    return pa, pad
+
+
+def get_parallactic_angle(starname, year, month, day, hours, minutes, seconds,
+                          display=False):
     """
-    Get the parallactic angle calculated by Astroplan, using celestial coordinates and angle hour.
+    Get the parallactic angle calculated by Astroplan, using celestial\
+    coordinates and angle hour.
+
     The formula is taken from https://en.wikipedia.org/wiki/Parallactic_angle
 
-    :param starname: Name of the star (Common name or from any catalog known by SIMBAD)
+    :param starname: Name of the star (Common name or from any catalog known
+                                       by SIMBAD)
     :type starname: string
     :param year: year of the observation, in HST time zone
     :type year: int
@@ -31,8 +57,9 @@ def get_Parallactic_Angle(starname, year, month, day, hours, minutes, seconds, d
     :type minutes: int
     :param seconds:  seconds of the observation, in HST time zone
     :type seconds: int
-    :param display: If True, displays the parallactic angle and the PAD (Parallactic angle in Chuck), defaults to False
-    :type display: bool, optional 
+    :param display: If True, displays the parallactic angle and the PAD
+    (Parallactic angle in Chuck), defaults to False
+    :type display: bool, optional
     :return: Parallactic angle in degree and the UTC time of the observation
     :rtype: tuple
 
@@ -58,30 +85,38 @@ def get_Parallactic_Angle(starname, year, month, day, hours, minutes, seconds, d
     if display is True:
         print('Parallactic angle for Chuck (PAD) :'+str(chuck_pad)+' degrees')
 
-    return para_angle, utc_time
+    return para_angle, chuck_pad, utc_time
 
 
-def get_Parallactic_Angle_Subaru(Az, El, lat=None, display=False):
+def get_parallactic_angle_subaru(Az, El, lat=None, display=False):
     """
-    Get the parallactic angle as coded in AO-188 and from the telemetry saved by it.
-    Note, the parallactic given here is different from the one given by ``get_Parallactic_Angle''.
-    It is not confirmed yet but here are two possible reasons: 
+    Get the parallactic angle as coded in AO-188 and from the telemetry
+    saved by it.
+    Note, the parallactic given here is different from the one given by
+    ``get_parallactic_angle''.
+    It is not confirmed yet but here are two possible reasons:
         * the numerical errors (Astroplan formula uses lots of trigonometry)
-        * the levation calculated in AO-188 is not the exact same one given by Astroplan for the exact same time of observation
+        * the levation calculated in AO-188 is not the exact same one given by
+        Astroplan for the exact same time of observation
 
     :param Az: Azimuth of the object
     :type Az: float
     :param El: Elevation of the object
     :type El: float
-    :param lat: latitude of the observing site. If None, the hard coded value in AO-188 (Subaru) is used, defaults to None
+    :param lat: latitude of the observing site. If None, the hard coded value
+    in AO-188 (Subaru) is used, defaults to None
     :type lat: float, optional
-    :param display: If True, displays the parallactic angle and the PAD (Parallactic angle in Chuck), defaults to False
-    :type display: bool, optional 
-    :return: Chuck PAD in degrees (Parallactic angle in Chuck coordinates base), parallactic angle as calculated in AO-188 in degree.
+    :param display: If True, displays the parallactic angle and the PAD
+    (Parallactic angle in Chuck), defaults to False
+    :type display: bool, optional
+    :return: Chuck PAD in degrees
+    (Parallactic angle in Chuck coordinates base),
+    parallactic angle as calculated in AO-188 in degree.
     :rtype: tuple
 
     """
-    # Formula from Kudo-san to compute the PAD on chuck from telescope AzEl info - from AO188 telemetry
+    # Formula from Kudo-san to compute the PAD on chuck
+    # from telescope AzEl info - from AO188 telemetry
     if lat is None:
         lat = 19.823806 * np.pi / 180
     else:
@@ -91,9 +126,6 @@ def get_Parallactic_Angle_Subaru(Az, El, lat=None, display=False):
 
     deg = np.sin(El) * np.cos(Az) + np.cos(El)*np.sin(lat)/np.cos(lat)
     para_angle_Subaru = np.arctan2(np.sin(Az), deg) * 180 / np.pi
-
-    # if display is True:
-    #     print('Parallactic angle for Subaru :'+str(para_angle_Subaru)+' degrees')
 
     # Chuck's PAD
     chuck_pad = para_angle_Subaru + 180 - 39
@@ -154,7 +186,8 @@ def binary_orbit_calc(t, smaj, ecc, inc, small_om, big_om):
     return x_pos, y_pos
 
 
-def binary_orbit(n_points, t0, T, smaj, ecc, inc, small_om, big_om, display=False):
+def binary_orbit(n_points, t0, T, smaj, ecc, inc, small_om, big_om,
+                 display=False):
     """
     Plot the orbit of a binary system
 
@@ -172,7 +205,8 @@ def binary_orbit(n_points, t0, T, smaj, ecc, inc, small_om, big_om, display=Fals
     :type big_om: float
     :param display: plot the orbit, defaults to False
     :type display: bool, optional
-    :return: epoch, x and y coordinates of the ``n_points'' positions on the orbit
+    :return: epoch, x and y coordinates of the ``n_points''
+    positions on the orbit
     :rtype: tuple
 
     """
@@ -296,13 +330,14 @@ def binary_ephem(current_date, t0, T, smaj, ecc, inc, small_om, big_om, t0_err,
     return sep, pa
 
 
-def get_Orbit_Param(Target):
+def get_Orbit_Param(target):
     """
     Provides orbit parameters for binary systems
 
     """
+    target = target.lower()
 
-    if Target == 'Capella':
+    if target == 'capella':
         # Source: https://ui.adsabs.harvard.edu/abs/2015ApJ...807...26T/abstract
         # Time of Periastron [years]
         t0 = 1990.6989041095892
@@ -326,7 +361,7 @@ def get_Orbit_Param(Target):
         T = 0.28479474332648874
         T_err = 4.3805612594113626e-07
 
-    elif Target == 'betaHer':
+    elif target == 'betaher':
         # Time of Periastron [years]
         t0 = Time('2415500.4', format='jd')
         t0 = t0.decimalyear
@@ -350,7 +385,7 @@ def get_Orbit_Param(Target):
         T = 410.6/365.25
         T_err = 0.
 
-    elif Target == 'delSge':
+    elif target == 'delsge':
         # Time of Periastron [years]
         t0 = 1979.93
         t0_err = 0.
@@ -381,16 +416,48 @@ def get_Orbit_Param(Target):
 
 
 if __name__ == "__main__":
+    # =============================================================================
+    # Capella
+    # =============================================================================
+    # # Load Orbits params
+    # t0, smaj, ecc, inc, small_om, big_om, T,\
+    #     t0_err, smaj_err, ecc_err, inc_err, small_om_err, big_om_err, T_err =\
+    #     get_Orbit_Param('Capella')
 
+    # # Orbit
+    # # epoch, x_pos, y_pos = binary_orbit(1000, t0, T, smaj, ecc, inc, small_om,
+    # #                                    big_om, display = False)
+
+    # date = Time('2020-09-17T04:50:18', format='isot')
+    # subaru = Observer.at_site("Subaru", timezone="US/Hawaii")
+
+    # # Select date
+    # utc_time = subaru.datetime_to_astropy_time(date.datetime)  # convert to UTC
+    # # utc_time = Time(datetime.datetime.now())
+    # current_date = utc_time.decimalyear
+
+    # # Compute / display binary ephem
+    # sep, pa = binary_ephem(current_date, t0, T, smaj, ecc, inc, small_om,
+    #                        big_om, t0_err, T_err, smaj_err, ecc_err, inc_err,
+    #                        small_om_err, big_om_err, nsamp=1000, display=True)
+
+    # # Get the Parallactic Angle from astroplan library
+    # PA = get_parallactic_angle('Capella', 2020, 9, 17, 4, 50, 18, display=True)
+    # Az = 17.679
+    # El = 62.0691
+    # Az = 2.0234e+02  # For 2020-09-17:4h50h18s HST (+10h for UTC)
+    # El = 6.0896e+01  # For 2020-09-17:4h50h18s HST (+10h for UTC)
+
+    # PAD, subaru_q = get_parallactic_angle_subaru(Az, El, display=True)
+
+    # =============================================================================
+    # Del sge
+    # =============================================================================
     # Load Orbits params
     t0, smaj, ecc, inc, small_om, big_om, T,\
         t0_err, smaj_err, ecc_err, inc_err, small_om_err, big_om_err, T_err =\
-        get_Orbit_Param('Capella')
-
-    # Orbit
-    # epoch, x_pos, y_pos = binary_orbit(1000, t0, T, smaj, ecc, inc, small_om, big_om, display = False)
-
-    date = Time('2020-09-17T04:50:18', format='isot')
+        get_Orbit_Param('delsge')
+    date = Time('2021-04-30T05:00:00', format='isot')
     subaru = Observer.at_site("Subaru", timezone="US/Hawaii")
 
     # Select date
@@ -403,23 +470,31 @@ if __name__ == "__main__":
                            big_om, t0_err, T_err, smaj_err, ecc_err, inc_err,
                            small_om_err, big_om_err, nsamp=1000, display=True)
 
-    # ## Get the Parallactic Angle from astroplan library
-    # PA = get_Parallactic_Angle('Capella', 2020,9,16,4,48,32, display=True)
-    # ## Get the Parallactic Angle from Telescope position # WARNING : IF Az comes from AO188 telemetry, need to subtract 180 degrees before using get_Parallactic_Angle_Subaru()
+    # Get the Parallactic Angle from astroplan library
+    PA = get_parallactic_angle('del Sge', 2021, 4, 30, 5, 00, 00, display=True)
+
+    pa_list, pad_list = get_several_parallactic_angles(
+        'del Sge', '2021-04-30T04:32:04.0', '2021-04-30T05:38:33.0', 13)
+
+    # Get the Parallactic Angle from Telescope position
+    '''
+    WARNING : IF Az comes from AO188 telemetry,
+    need to subtract 180 degrees before using get_parallactic_angle_subaru()
+    '''
     # Az = 17.679
     # El = 62.0691
 
-    # PAD, subaru_q = get_Parallactic_Angle_Subaru(Az, El, display = True)
+    # PAD, subaru_q = get_parallactic_angle_subaru(Az, El, display = True)
 
     # date = Time('2020-09-16T14:48:32', format='isot')
-    # print('Seb', get_Parallactic_Angle('Capella', date.datetime.year, date.datetime.month, date.datetime.day, \
+    # print('Seb', get_parallactic_angle('Capella', date.datetime.year, date.datetime.month, date.datetime.day, \
     #                               date.datetime.hour-10, date.datetime.minute, date.datetime.second)[0])
 
     # subaru = Observer.at_site("Subaru", timezone="US/Hawaii")
     # star=FixedTarget.from_name("Capella")
     # print(subaru.altaz(date, star).alt.deg, subaru.altaz(date, star).az.deg)
     # print('Astroplan', subaru.parallactic_angle(date, star).deg)
-    # print('Subaru', get_Parallactic_Angle_Subaru(subaru.altaz(date, star).az.deg, subaru.altaz(date, star).alt.deg, display = False, lat=subaru.location.lat.deg)[1])
+    # print('Subaru', get_parallactic_angle_subaru(subaru.altaz(date, star).az.deg, subaru.altaz(date, star).alt.deg, display = False, lat=subaru.location.lat.deg)[1])
 
     # LST = date.sidereal_time('mean', longitude=subaru.location.lon)
     # H = (LST - star.ra).radian
