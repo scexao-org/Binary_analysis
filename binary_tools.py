@@ -10,7 +10,30 @@ from astropy.time import Time
 import sympy as sp
 
 plt.ion()
+from datetime import datetime as dt
+import time
+import julian
 
+def toYearFraction(date):
+    '''
+    Conversion of the date into decimal year. 
+    ; param date : Date, generated from datetime. Ex : datetime.today() // datetime(2021,5,25,3,0,0)
+    ; type date : datetime
+    '''
+
+    def sinceEpoch(date): # returns seconds since epoch
+        return time.mktime(date.timetuple())
+    s = sinceEpoch
+
+    year = date.year
+    startOfThisYear = dt(year=year, month=1, day=1)
+    startOfNextYear = dt(year=year+1, month=1, day=1)
+
+    yearElapsed = s(date) - s(startOfThisYear)
+    yearDuration = s(startOfNextYear) - s(startOfThisYear)
+    fraction = yearElapsed/yearDuration
+
+    return date.year + fraction
 
 def get_Parallactic_Angle(starname, year,month,day,hours,minutes,seconds, display = False):
     """
@@ -100,7 +123,6 @@ def get_Parallactic_Angle_Subaru(Az, El, lat=None, display = False):
         print('Subaru parallactic angle for Chuck (PAD) :'+str(chuck_pad)+' degrees')
 
     return chuck_pad, para_angle_Subaru
-
 
 def binary_orbit_calc(t, smaj, ecc, inc, small_om, big_om):
     """
@@ -197,7 +219,6 @@ def binary_orbit(n_points, t0, T, smaj, ecc, inc, small_om, big_om, display = Fa
         
     return epoch, x_pos, y_pos
 
-
 def binary_ephem(current_date, t0, T, smaj, ecc, inc, small_om, big_om, display=False):
     """
     Gives the separation and PA of the companion at the date of observation.
@@ -261,10 +282,11 @@ def binary_ephem(current_date, t0, T, smaj, ecc, inc, small_om, big_om, display=
         
     return sep, pa
     
-
 def get_Orbit_Param(Target):
     """
-    Provides orbit parameters for binary systems
+    Provides orbit parameters for binary systems. Info can be found on the website : http://www.astro.gsu.edu/wds/orb6/orb6orbits.html
+    Info per column :
+    HD/HIP name  ||   Vmag  ||  Period  ||  Semi-major axis  ||  Inclination  ||  Position angle of ascending node (Big Om)  ||  Time of periastron  ||  Excentricity  ||  Argument of periastron
 
     """
 
@@ -285,6 +307,57 @@ def get_Orbit_Param(Target):
         # Period [years]
         T          = 0.28479474332648874   
 
+    if Target == 'AlfEqu':
+        # Time of Periastron [years]
+        t0         = toYearFraction(julian.from_jd(47592.1,"mjd"))
+        # Semi-major axis [asec]
+        smaj       = 0.011987
+        # Eccentricity
+        ecc        = 0.0056
+        # Inclination [degrees]
+        inc        = 151.5
+        # Argument of periastron
+        small_om   = 342.6
+        # Position angle of ascending node
+        big_om     = 33.9
+        # Period [years]
+        T          = 98.800/365.2425  
+
+    if Target == '47oph':
+        # Time of Periastron [years]
+        t0         = 1990.5795
+        # Semi-major axis [asec]
+        smaj       = 0.00799
+        # Eccentricity
+        ecc        = 0.481
+        # Inclination [degrees]
+        inc        = 59.5
+        # Argument of periastron
+        small_om   = 270.
+        # Position angle of ascending node
+        big_om     = 121.8
+        # Period [years]
+        T          = 0.071972603
+
+
+    if Target == 'alpCrb':
+        # Time of Periastron [years]
+        t0         = 1958.497657768516
+        # Semi-major axis [asec]
+        # smaj       = 0.00175
+        smaj       = 0.00866
+        # Eccentricity
+        ecc        = 0.37
+        # Inclination [degrees]
+        inc        = 88.2
+        # Argument of periastron
+        small_om   = 311
+        # Position angle of ascending node
+        big_om     = 330.4
+        # Period [years]
+        T          = 0.047528815879534565
+
+
     elif  Target == 'betaHer':
         # Time of Periastron [years]
         t0 = Time('2415500.4',format='jd')
@@ -300,7 +373,7 @@ def get_Orbit_Param(Target):
         # Position angle of ascending node
         big_om     = 341.9
         # Period [years]
-        T = 410.6/365.25
+        T = 410.6/365.25    
 
     elif Target == 'delSge':
         # Time of Periastron [years]
@@ -317,6 +390,22 @@ def get_Orbit_Param(Target):
         big_om     = 170.2
         # Period [years]
         T          = 10.11
+
+    elif Target == 'HD44927':
+        # Time of Periastron [years]
+        t0         = 2020.594
+        # Semi-major axis [asec]
+        smaj       = 0.087
+        # Eccentricity
+        ecc        = 0.074
+        # Inclination [degrees]
+        inc        = 82.5
+        # Argument of periastron
+        small_om   = 236.8
+        # Position angle of ascending node
+        big_om     = 149.3
+        # Period [years]
+        T          = 42.841
 
     else:
         print('Target not listed...')
@@ -357,9 +446,12 @@ if __name__ == "__main__":
     date = Time('2021-03-19T00:00:00', format='isot')
     subaru = Observer.at_site("Subaru", timezone="US/Hawaii")
 
+
+
     ## Select date
     utc_time = subaru.datetime_to_astropy_time(date.datetime) # convert to UTC
-    current_date = 2021.2123
+    current_date = toYearFraction(dt(2021,3,19))
+    2021.2123
 
     ## Compute / display binary ephem
     sep, pa = binary_ephem(current_date, t0, T, smaj, ecc, inc, small_om, big_om, display=True)
