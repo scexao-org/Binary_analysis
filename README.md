@@ -20,7 +20,7 @@ Tools to study binary systems
 ## Credits
 
 This library gathers codes and information from various collaborators:
-- Guillaume Duchêne
+- Gaspard Duchêne
 - Elsa Huby
 - Marc-Antoine Martinod
 - Tomoyuki Kudo
