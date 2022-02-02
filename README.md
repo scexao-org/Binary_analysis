@@ -1,4 +1,4 @@
-# Binary_analysis
+# Binary Analysis Tools (BATs)
 Tools to study binary systems
 
 ----------
