@@ -56,7 +56,6 @@ def get_several_parallactic_angles(starname, date_start, date_end, n_elements,
 
     return pa, pad
 
-
 def get_parallactic_angle(starname, year, month, day, hours, minutes, seconds,
                           display=False):
     """
@@ -385,7 +384,7 @@ def get_Orbit_Param(target):
         T = 0.28479474332648874
         T_err = 4.3805612594113626e-07
 
-    if target == 'AlfEqu':
+    elif target == 'AlfEqu':
         # Time of Periastron [years]
         t0         = toYearFraction(julian.from_jd(47592.1,"mjd"))
         # Semi-major axis [asec]
@@ -401,7 +400,7 @@ def get_Orbit_Param(target):
         # Period [years]
         T          = 98.800/365.2425  
 
-    if target == '47oph':
+    elif target == '47oph':
         # Time of Periastron [years]
         t0         = 1990.5795
         # Semi-major axis [asec]
@@ -418,7 +417,7 @@ def get_Orbit_Param(target):
         T          = 0.071972603
 
 
-    if target == 'alpCrb':
+    elif target == 'alpCrb':
         # Time of Periastron [years]
         t0         = 1958.497657768516
         t0_err = 0.
@@ -510,6 +509,83 @@ def get_Orbit_Param(target):
 
     return t0, smaj, ecc, inc, small_om, big_om, T,\
         t0_err, smaj_err, ecc_err, inc_err, small_om_err, big_om_err, T_err
+
+
+def xy2spa(x,dx,y,dy, print=False):
+    """
+    Converts Cartesian object coordinates into polar coordinates
+    (with error bars)
+
+    :param x: x position, in arcsecond
+    :type x: float
+    :param dx: error bar on the x position, in arcsecond
+    :type dx: float
+    :param y: y position, in arcsecond
+    :type y: float
+    :param dy: error bar on the x position, in arcsecond
+    :type dy: float
+    :param print: prints the computed separation and position angle, defaults to False
+    :type print: bool, optional
+    :return: separation and error bar in arcsecond and the position angle and error bar in degree
+    :rtype: tuple
+
+    """
+	# Compute the separation from the (x,y) coordinates
+    sep = np.around(np.sqrt(x**2+y**2),decimals=1)
+    # Compute the error on the separation
+    dsep = abs(np.around(sep * 0.5*(dx/x) + sep* 0.5*(dy/y),decimals=1))
+    # Compute the angle from the (x,y) coordinates
+    angle = np.around(np.degrees(np.arctan2(y,x)),decimals=1)
+    # Compute the error on the angle
+    dangle = np.around(np.degrees(abs((1/x)/(1+y**2))*dy + abs( (-y/(x**2))*1/(1+(y/x)**2) )*dx),decimals=1)
+
+    if print is True : 
+        print('Separation : '+str(sep)+' +/- '+str(dsep))
+        print('Position Angle : '+str(angle)+' +/- '+str(dangle))
+
+    return sep, dsep, angle, dangle 
+
+
+def spa2xy(r,dr,t,dt, display = False):
+    """
+    Converts polar object coordinates into Cartesian coordinates
+    (with error bars)
+
+    :param r: separation, in arcsecond
+    :type r: float
+    :param dr: error bar on the separation, in arcsecond
+    :type dr: float
+    :param t: position angle, in degree
+    :type t: float
+    :param dt: error bar on the position angle, in degree
+    :type dt: float
+    :param print: prints the computed Cartesian coordinates, defaults to False
+    :type print: bool, optional
+    :return: Cartesian coordinates and error bars in arcsecond 
+    :rtype: tuple
+
+    """
+    # Compute the x cordinate from the (r,t) coordinates
+    x = r*np.cos(np.deg2rad(t))
+    # Compute the error on x
+    dx = np.cos(np.deg2rad(t))*dr - r*np.sin(np.deg2rad(t))*np.deg2rad(dt)
+    # Compute the y cordinate from the (r,t) coordinates
+    y = r*np.sin(np.deg2rad(t))
+    # Compute the error on y
+    dy = np.sin(np.deg2rad(t))*dr + r*np.cos(np.deg2rad(t))*np.deg2rad(dt)
+
+    if display is True :
+        print('X position : '+str(x)+' +/- '+str(dx))
+        print('Y position : '+str(y)+' +/- '+str(dy))
+
+    return x, dx, y, dy 
+
+
+
+
+
+
+
 
 
 if __name__ == "__main__":
